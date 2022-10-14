@@ -145,11 +145,29 @@ DATABASES = {
         'PASSWORD': 'dfnf82h83e3e9j921dw',
         'HOST': 'localhost',
         'PORT': '5432',
+    },
+    'gcpdummy':{
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'cmsdummy',
+        'USER': 'postgres',
+        'PASSWORD': 'prodcmsdummy',
+        'HOST': '34.171.141.219',
+        'PORT': '5432',
+    },
+    'gcpcompany':{
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'cmscompany',
+        'USER': 'postgres',
+        'PASSWORD': 'prodcmsdummy',
+        'HOST': '34.171.141.219',
+        'PORT': '5432',
     }
 }
 
 default_database = environ.get('DJANGO_DATABASE', 'dev')
 DATABASES['default'] = DATABASES[default_database]
+
+DATABASES['default'] = DATABASES['gcpdummy']
 
 # DATABASES = {
 #     'default': {
