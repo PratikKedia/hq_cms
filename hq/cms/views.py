@@ -611,8 +611,8 @@ class CopyQuestion(APIView):
             derived_ques.skills.set(valid_data["skills"])
         if 'subskill' in valid_data:
             derived_ques.subskill.set(valid_data["subskill"])
-        derived_ques.exhibits.set(valid_data["exhibits"])
-        derived_ques.excels.set(valid_data["excels"])
+        derived_ques.exhibits.set(valid_data.get("exhibits"))
+        derived_ques.excels.set(valid_data.get("excels"))
 
         if "assessmentId" in data:
             derived_ques.assessmentid.set([a_id])
