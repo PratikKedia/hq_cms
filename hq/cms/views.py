@@ -33,6 +33,7 @@ import os
 class CustomObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         print(request)
+        print("This is where api is coming")
         response = super(CustomObtainAuthToken, self).post(request, *args, **kwargs)
         token = Token.objects.get(key=response.data["token"])
         user = token.user
@@ -82,8 +83,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         user = authenticate_token(self, request)
-        # print(user["user_id"])
-        # Admin can view everything
+
         if user["role"] == "MEMBER":
             queryset = Assessment.objects.filter(
                 creator=user["user_id"]
@@ -91,6 +91,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         else:
             queryset = Assessment.objects.filter(isdeleted=False)
 
+        # Apply filters based on query params
         if "status" in request.GET:
             status = request.GET.getlist("status")
             if status:
@@ -111,20 +112,32 @@ class AssessmentViewSet(viewsets.ModelViewSet):
             if role:
                 queryset = queryset.filter(role__in=role)
 
+        if "search" in request.GET:
+            search_query = request.GET["search"]
+            if search_query:
+                queryset = queryset.filter(name__iregex=search_query)
+
         if "starttime" in request.GET and "endtime" in request.GET:
             queryset = queryset.filter(
                 created__range=[request.GET["starttime"], request.GET["endtime"]]
             ).distinct()
-        # FIXME - Correct filtering in this
         elif "starttime" in request.GET:
             queryset = queryset.filter(created__gte=request.GET["starttime"]).distinct()
         elif "endtime" in request.GET:
             queryset = queryset.filter(created__lte=request.GET["endtime"]).distinct()
 
         queryset_order = queryset.order_by("-last_updated")
+        total_elements = queryset.count()  # Get total count before pagination
+
+        # Apply pagination
+        page = self.paginate_queryset(queryset_order)
+        if page is not None:
+            serializer = AssessmentSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return full queryset
         serializer = AssessmentSerializer(queryset_order, many=True)
-        page = self.paginate_queryset(serializer.data)
-        return Response(page)
+        return Response(serializer.data)
 
 
 class Logout(APIView):

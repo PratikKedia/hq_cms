@@ -167,7 +167,7 @@ DATABASES = {
 default_database = environ.get('DJANGO_DATABASE', 'dev')
 DATABASES['default'] = DATABASES[default_database]
 
-DATABASES['default'] = DATABASES['gcpdummy']
+# DATABASES['default'] = DATABASES['gcpdummy']
 
 # DATABASES = {
 #     'default': {
