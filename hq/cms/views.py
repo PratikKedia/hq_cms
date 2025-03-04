@@ -111,20 +111,32 @@ class AssessmentViewSet(viewsets.ModelViewSet):
             if role:
                 queryset = queryset.filter(role__in=role)
 
+        if "search" in request.GET:
+            search_query = request.GET["search"]
+            if search_query:
+                queryset = queryset.filter(name__iregex=search_query)
+
         if "starttime" in request.GET and "endtime" in request.GET:
             queryset = queryset.filter(
                 created__range=[request.GET["starttime"], request.GET["endtime"]]
             ).distinct()
-        # FIXME - Correct filtering in this
         elif "starttime" in request.GET:
             queryset = queryset.filter(created__gte=request.GET["starttime"]).distinct()
         elif "endtime" in request.GET:
             queryset = queryset.filter(created__lte=request.GET["endtime"]).distinct()
 
         queryset_order = queryset.order_by("-last_updated")
+        total_elements = queryset.count()  # Get total count before pagination
+
+        # Apply pagination
+        page = self.paginate_queryset(queryset_order)
+        if page is not None:
+            serializer = AssessmentSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return full queryset
         serializer = AssessmentSerializer(queryset_order, many=True)
-        page = self.paginate_queryset(serializer.data)
-        return Response(page)
+        return Response({"count": total_elements, "results": serializer.data})
 
 
 class Logout(APIView):
