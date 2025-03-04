@@ -33,7 +33,6 @@ import os
 class CustomObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         print(request)
-        print("This is where api is coming")
         response = super(CustomObtainAuthToken, self).post(request, *args, **kwargs)
         token = Token.objects.get(key=response.data["token"])
         user = token.user
@@ -83,7 +82,8 @@ class AssessmentViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         user = authenticate_token(self, request)
-
+        # print(user["user_id"])
+        # Admin can view everything
         if user["role"] == "MEMBER":
             queryset = Assessment.objects.filter(
                 creator=user["user_id"]
@@ -91,7 +91,6 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         else:
             queryset = Assessment.objects.filter(isdeleted=False)
 
-        # Apply filters based on query params
         if "status" in request.GET:
             status = request.GET.getlist("status")
             if status:
