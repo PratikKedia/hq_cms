@@ -137,7 +137,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
 
         # If no pagination is applied, return full queryset
         serializer = AssessmentSerializer(queryset_order, many=True)
-        return Response(serializer.data)
+        return Response({"count": total_elements, "results": serializer.data})
 
 
 class Logout(APIView):
