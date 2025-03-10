@@ -258,6 +258,11 @@ class QuestionViewSet(viewsets.ModelViewSet):
             if role:
                 queryset = queryset.filter(role__in=role)
 
+        if "search" in request.GET:
+            search_query = request.GET["search"]
+            if search_query:
+                queryset = queryset.filter(text__icontains=search_query)
+
         if "code" in request.GET:
             code = request.GET.getlist("code")
             if code:
@@ -284,9 +289,19 @@ class QuestionViewSet(viewsets.ModelViewSet):
             related_ques = request.GET.get("related_ques")
             if related_ques:
                 queryset = queryset.filter(related_ques__in=related_ques)
+
+        # total elements
+        total_elements = queryset.count()
+        
+        # Apply pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = QuestionSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return full queryset
         serializer = QuestionSerializer(queryset, many=True)
-        page = self.paginate_queryset(serializer.data)
-        return Response(page)
+        return Response({"count": total_elements, "results": serializer.data})
 
     def retrieve(self, request, pk=None):
         queryset = Question.objects.filter(isdeleted=False).filter(id=pk)
